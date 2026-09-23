@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Shopping basket | AR Shopping World{% endblock %}
+{% block content %}
+<main class="max-w-4xl mx-auto px-4 py-10 w-full">
+  {% set checkout_step = 1 %}
+  {% include '_checkout_steps.html' %}
+  <h1 class="text-2xl font-black mb-2">Shopping basket</h1>
+  <p class="text-sm text-slate-500 mb-5">Shipping is shown for {{ customer_region }} ({{ customer_location_source }}). Rates change if the order is over 5 kg.</p>
+  {% if items %}
+  <div class="grid lg:grid-cols-5 gap-6">
+    <div class="lg:col-span-3 bg-white rounded-2xl border divide-y">
+      {% for item in items %}
+      <div class="p-4 flex gap-4 items-center">
+        <img src="{{ item.image }}" class="w-16 h-16 rounded-lg object-cover" alt="{{ item.name }}">
+        <div class="grow">
+          <b class="text-sm">{{ item.name }}</b>
+          <p class="text-xs text-slate-500">Colour: {{ item.selected_color }} · Size: {{ item.selected_size }}{% if item.weight %} · {{ '%.2f'|format(item.line_weight) }} kg{% endif %}</p>
+          <span class="price text-sm font-bold" data-pkr="{{ item.subtotal }}"></span>
+          {% if item.volume_percent %}
+          <p class="text-[11px] text-red-600 font-bold mt-1">{{ '%.0f'|format(item.volume_percent) }}% volume discount</p>
+          {% endif %}
+          <div class="flex items-center gap-2 mt-2">
+            <form method="post" action="{{ url_for('update_cart') }}">
+              <input type="hidden" name="cart_key" value="{{ item.cart_key }}">
+              <input type="hidden" name="action" value="dec">
+              <button class="w-8 h-8 border rounded-lg text-sm font-bold">−</button>
+            </form>
+            <span class="text-sm font-black min-w-6 text-center">{{ item.quantity }}</span>
+            <form method="post" action="{{ url_for('update_cart') }}">
+              <input type="hidden" name="cart_key" value="{{ item.cart_key }}">
+              <input type="hidden" name="action" value="inc">
+              <button class="w-8 h-8 border rounded-lg text-sm font-bold">+</button>
+            </form>
+          </div>
+        </div>
+        <form method="post" action="{{ url_for('remove_cart', product_id=item.id) }}">
+          <input type="hidden" name="cart_key" value="{{ item.cart_key }}">
+          <button class="text-red-600 text-xs font-bold">Remove</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% include '_checkout_totals.html' %}
+  </div>
+  <div class="mt-6 flex justify-end">
+    <a class="bg-red-600 text-white rounded-xl px-6 py-3 font-bold text-sm" href="{{ url_for('checkout_account') }}">Continue to checkout</a>
+  </div>
+  {% else %}
+  <div class="bg-white border rounded-2xl p-10 text-center">
+    <p>Your cart is empty.</p>
+    <a class="inline-block mt-4 bg-red-600 text-white px-4 py-2 rounded-xl text-sm" href="{{ url_for('products') }}">Shop products</a>
+  </div>
+  {% endif %}
+</main>
+{% include '_currency.html' %}
+{% endblock %}
